@@ -1,0 +1,29 @@
+{
+  "name": "frontdocs",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdrianMPC/frontdoc.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AdrianMPC/frontdoc/issues"
+  },
+  "homepage": "https://github.com/AdrianMPC/frontdoc#readme",
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "react-docgen-typescript": "^2.4.0",
+    "tsdown": "^0.22.0",
+    "typescript": "^6.0.3"
+  }
+}
