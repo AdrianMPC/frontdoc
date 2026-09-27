@@ -1,6 +1,6 @@
 import { globSync } from 'fs'
 import path from 'path'
-import type { FSWatcher } from 'chokidar'
+import { watch, type FSWatcher } from 'chokidar'
 import { extractComponents } from '../extractor/extractComponents'
 import type { ComponentSchema } from '../extractor'
 
@@ -18,5 +18,13 @@ export function watchDirectory(
   dir: string,
   onChange: (filePath: string, schemas: ComponentSchema[]) => void
 ): FSWatcher {
-  throw new Error('not implemented')
+  // ponytail: new ts program per change; reuse one via parseWithProgramProvider if reload feels slow
+  const update = (p: string) => onChange(p, extractComponents(p))
+  return watch(dir, {
+    ignoreInitial: true,
+    ignored: (p, stats) => p.includes('node_modules') || (!!stats?.isFile() && !p.endsWith('.tsx')),
+  })
+    .on('add', update)
+    .on('change', update)
+    .on('unlink', (p) => onChange(p, []))
 }
