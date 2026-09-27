@@ -6,7 +6,7 @@ export default defineConfig({
     cli:   'src/cli.ts',
   },
   format: ['esm', 'cjs'],
-  platform: 'neutral',
+  platform: 'node',
   dts: true,
   clean: true,
   deps: {
