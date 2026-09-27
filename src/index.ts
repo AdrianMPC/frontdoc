@@ -7,6 +7,7 @@ const parser = withCompilerOptions(
     savePropValueAsString: true,
     shouldRemoveUndefinedFromOptional: true,
     shouldIncludeExpression: true,
+    shouldExtractLiteralValuesFromEnum: true,
     propFilter: (prop) =>
       !prop.declarations?.length ||
       prop.declarations.some((d) => !d.fileName.includes('node_modules')),

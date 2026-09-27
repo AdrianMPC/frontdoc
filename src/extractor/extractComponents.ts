@@ -16,11 +16,18 @@ export function extractComponents(filePaths: string | string[]): ComponentSchema
     description: doc.description,
     props: Object.values(doc.props).map((p) => ({
       name: p.name,
-      type: p.type.name,
+      type: p.type.raw ?? p.type.name, // enum types keep their union text in raw
       required: p.required,
       defaultValue: p.defaultValue?.value ?? null,
       description: p.description,
+      ...(p.type.name === 'enum' && { options: p.type.value.map((o: { value: string }) => literal(o.value)) }),
     })),
     filePath: doc.filePath,
+    exportName: doc.expression?.getName() ?? 'default',
   }))
+}
+
+// ponytail: TS enum members (Size.Small) stay as their source text, resolve via checker if needed
+function literal(raw: string): string | number {
+  try { return JSON.parse(raw) } catch { return raw }
 }

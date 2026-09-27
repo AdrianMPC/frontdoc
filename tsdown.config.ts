@@ -9,6 +9,7 @@ export default defineConfig({
   platform: 'node',
   dts: true,
   clean: true,
+  shims: true,
   deps: {
     neverBundle: ['react', 'react-dom', 'react/jsx-runtime', 'typescript'],
   },

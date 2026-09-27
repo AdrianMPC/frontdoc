@@ -1,0 +1,70 @@
+[
+  {
+    "displayName": "Button",
+    "description": "A basic button component.",
+    "props": [
+      {
+        "name": "label",
+        "type": "string",
+        "required": true,
+        "defaultValue": null,
+        "description": "The label displayed inside the button"
+      },
+      {
+        "name": "variant",
+        "type": "\"primary\" | \"secondary\" | \"ghost\"",
+        "required": false,
+        "defaultValue": "primary",
+        "description": "Controls the visual style of the button",
+        "options": [
+          "primary",
+          "secondary",
+          "ghost"
+        ]
+      },
+      {
+        "name": "disabled",
+        "type": "boolean",
+        "required": false,
+        "defaultValue": "false",
+        "description": "Whether the button is non-interactive"
+      },
+      {
+        "name": "onClick",
+        "type": "(() => void)",
+        "required": false,
+        "defaultValue": null,
+        "description": "Callback fired when the button is clicked"
+      }
+    ],
+    "filePath": "src/extractor/__fixtures__/Button.tsx",
+    "exportName": "Button"
+  },
+  {
+    "displayName": "Card",
+    "description": "A simple card container.",
+    "props": [
+      {
+        "name": "title",
+        "type": "string",
+        "required": true,
+        "defaultValue": null,
+        "description": "Heading shown at the top of the card"
+      },
+      {
+        "name": "size",
+        "type": "\"sm\" | \"md\" | \"lg\"",
+        "required": false,
+        "defaultValue": "md",
+        "description": "Size of the card",
+        "options": [
+          "sm",
+          "md",
+          "lg"
+        ]
+      }
+    ],
+    "filePath": "src/extractor/__fixtures__/Card.tsx",
+    "exportName": "Card"
+  }
+]
