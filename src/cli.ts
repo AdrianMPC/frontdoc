@@ -30,4 +30,7 @@ if (!statSync(dir, { throwIfNoEntry: false })?.isDirectory()) fail(`'${dirArg}' 
 const port = Number(parsed.values.port)
 if (!Number.isInteger(port) || port < 0 || port > 65535) fail(`invalid port '${parsed.values.port}'`)
 
-startExplorer({ dir, port })
+startExplorer({ dir, port }).catch((err) => {
+  console.error(`frontdocs: ${(err as Error).message}`)
+  process.exit(1)
+})
