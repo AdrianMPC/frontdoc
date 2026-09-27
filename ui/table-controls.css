@@ -1,0 +1,54 @@
+.prop-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.prop-table th,
+.prop-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #e2e2e2;
+  text-align: left;
+  vertical-align: top;
+}
+.prop-table th {
+  font-weight: 600;
+  background: #f6f6f6;
+}
+.prop-table tr.missing-doc {
+  background: #fff4e5;
+  box-shadow: inset 3px 0 0 #f59e0b;
+}
+.prop-table tr.missing-doc td:last-child {
+  color: #b45309;
+  font-style: italic;
+}
+
+.controls {
+  display: grid;
+  gap: 10px;
+  font-size: 14px;
+}
+.control label {
+  display: grid;
+  gap: 4px;
+}
+.control label.control-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.control-name {
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+}
+.control input[type='text'],
+.control input[type='number'],
+.control select {
+  padding: 4px 6px;
+  font: inherit;
+}
+.control-readonly {
+  display: block;
+  color: #888;
+  font-style: italic;
+}
