@@ -1,8 +1,14 @@
-import type { Props } from 'react-docgen-typescript'
+export interface PropSchema {
+  name: string
+  type: string
+  required: boolean
+  defaultValue: string | null
+  description: string
+}
 
 export interface ComponentSchema {
   displayName: string
   description: string
-  props: Props
+  props: PropSchema[]
   filePath: string
 }

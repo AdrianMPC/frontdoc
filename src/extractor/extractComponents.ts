@@ -7,7 +7,13 @@ export function extractComponents(filePath: string): ComponentSchema[] {
   return parser.parse(absolutePath).map((doc) => ({
     displayName: doc.displayName,
     description: doc.description,
-    props: doc.props,
+    props: Object.values(doc.props).map((p) => ({
+      name: p.name,
+      type: p.type.name,
+      required: p.required,
+      defaultValue: p.defaultValue?.value ?? null,
+      description: p.description,
+    })),
     filePath: absolutePath,
   }))
 }
