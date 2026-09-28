@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url'
 import { createServer, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { scanDirectory, watchDirectory } from '../watcher'
-import type { ComponentSchema } from '../extractor'
+import type { SchemasPayload } from '../extractor'
 
 const ui = fileURLToPath(new URL('../ui', import.meta.url))
 
@@ -31,7 +31,7 @@ function frontdocs(dir: string): Plugin {
     name: 'frontdocs',
     configureServer(server) {
       const schemas = scanDirectory(dir)
-      const all = (): ComponentSchema[] => [...schemas.values()].flat()
+      const all = (): SchemasPayload => ({ root: dir, components: [...schemas.values()].flat() })
       server.ws.on('frontdocs:hello', (_data, client) => client.send('frontdocs:schemas', all()))
       const watcher = watchDirectory(dir, (file, next) => {
         if (next.length) schemas.set(file, next)

@@ -9,7 +9,7 @@ const fixtures: ComponentSchema[] = JSON.parse(
 )
 const button = fixtures.find((c) => c.displayName === 'Button')!
 
-assert.deepEqual(initialValues(button.props), { variant: 'primary', disabled: false })
+assert.deepEqual(initialValues(button.props), { label: 'label', variant: 'primary', disabled: false })
 
 const p = (type: string, defaultValue: string | null, options?: (string | number)[]) => ({
   name: 'x', type, required: false, defaultValue, description: '', options,

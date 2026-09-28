@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import type { ComponentSchema } from '../src/extractor'
+import type { ComponentSchema, SchemasPayload } from '../src/extractor'
 import type { PreviewMessage } from './preview'
 import { PropTable } from './PropTable'
 import { Controls } from './Controls'
@@ -12,7 +12,7 @@ function App() {
   const current = components.find((c) => key(c) === selected) ?? components[0]
 
   useEffect(() => {
-    import.meta.hot?.on('frontdocs:schemas', setComponents)
+    import.meta.hot?.on('frontdocs:schemas', (p: SchemasPayload) => setComponents(p.components))
     import.meta.hot?.send('frontdocs:hello')
   }, [])
 

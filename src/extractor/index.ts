@@ -16,3 +16,9 @@ export interface ComponentSchema {
   /** Export to render: component name or 'default' */
   exportName: string
 }
+
+/** Payload of the `frontdocs:schemas` event: scanned folder + everything found in it */
+export interface SchemasPayload {
+  root: string
+  components: ComponentSchema[]
+}
