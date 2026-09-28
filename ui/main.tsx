@@ -6,26 +6,23 @@ import { PropTable } from './PropTable'
 import { Controls } from './Controls'
 import { initialValues } from './values'
 import { examples, type Example } from './examples'
+import { Sidebar } from './Sidebar'
+import { Snippet } from './Snippet'
+import { toJSX } from './snippet'
 
 function App() {
-  const [components, setComponents] = useState<ComponentSchema[]>([])
+  const [{ root, components }, setPayload] = useState<SchemasPayload>({ root: '', components: [] })
   const [selected, setSelected] = useState<string>()
   const current = components.find((c) => key(c) === selected) ?? components[0]
 
   useEffect(() => {
-    import.meta.hot?.on('frontdocs:schemas', (p: SchemasPayload) => setComponents(p.components))
+    import.meta.hot?.on('frontdocs:schemas', setPayload)
     import.meta.hot?.send('frontdocs:hello')
   }, [])
 
   return (
     <main>
-      <nav>
-        {components.map((c) => (
-          <button key={key(c)} onClick={() => setSelected(key(c))} aria-current={c === current}>
-            {c.displayName}
-          </button>
-        ))}
-      </nav>
+      <Sidebar root={root} components={components} selected={current && key(current)} onSelect={setSelected} />
       {current ? <Explorer key={key(current)} component={current} /> : <p>No components found.</p>}
     </main>
   )
@@ -39,6 +36,7 @@ function Explorer({ component }: { component: ComponentSchema }) {
       <h1>{component.displayName}</h1>
       <p>{component.description}</p>
       <Preview component={component} examples={[{ label: '', props: values }]} />
+      <Snippet code={toJSX(component, values)} />
       <Controls props={component.props} values={values} onChange={(name, value) => setValues((v) => ({ ...v, [name]: value }))} />
       <PropTable props={component.props} />
       {grid.length > 0 && (
@@ -53,6 +51,7 @@ function Explorer({ component }: { component: ComponentSchema }) {
 
 function Preview({ component, examples }: { component: ComponentSchema; examples: Example[] }) {
   const frame = useRef<HTMLIFrameElement>(null)
+  const [height, setHeight] = useState<number>()
   const post = () => {
     const message: PreviewMessage = {
       file: component.filePath,
@@ -64,11 +63,15 @@ function Preview({ component, examples }: { component: ComponentSchema; examples
   }
   useEffect(post)
   useEffect(() => {
-    const onReady = (e: MessageEvent) => e.data === 'frontdocs:preview-ready' && post()
+    const onReady = (e: MessageEvent) => {
+      if (e.source !== frame.current?.contentWindow) return
+      if (e.data === 'frontdocs:preview-ready') post()
+      else if (typeof e.data?.height === 'number') setHeight(e.data.height)
+    }
     window.addEventListener('message', onReady)
     return () => window.removeEventListener('message', onReady)
   })
-  return <iframe ref={frame} src="./preview.html" title={`${component.displayName} preview`} />
+  return <iframe ref={frame} src="./preview.html" title={`${component.displayName} preview`} style={{ height }} />
 }
 
 const key = (c: ComponentSchema) => `${c.filePath}#${c.exportName}`

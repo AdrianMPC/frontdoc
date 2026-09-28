@@ -31,4 +31,7 @@ window.addEventListener('message', async ({ data }: MessageEvent<PreviewMessage>
   )
 })
 
+// Report content height so the parent can size the iframe to fit
+new ResizeObserver(() => window.parent.postMessage({ height: document.body.offsetHeight }, '*')).observe(document.body)
+
 window.parent.postMessage('frontdocs:preview-ready', '*')

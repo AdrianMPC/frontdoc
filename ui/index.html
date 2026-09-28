@@ -4,6 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>frontdocs</title>
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; }
+      main { display: grid; grid-template-columns: 16rem 1fr; min-height: 100vh; }
+      main > section { padding: 1.5rem; min-width: 0; }
+      iframe { display: block; width: 100%; border: 1px solid #ddd; border-radius: 6px; }
+      @media (max-width: 40rem) { main { grid-template-columns: 1fr; } }
+    </style>
   </head>
   <body>
     <div id="root"></div>
