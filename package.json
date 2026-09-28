@@ -1,7 +1,7 @@
 {
   "name": "frontdocs",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "Zero-config component explorer for React: props from your TypeScript types, live controls, preview and JSX snippets.",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -24,7 +24,10 @@
   },
   "files": [
     "dist",
-    "ui"
+    "ui",
+    "!ui/test-*.ts",
+    "!ui/fixtures.json",
+    "!ui/tsconfig.json"
   ],
   "scripts": {
     "build": "tsdown",
@@ -35,9 +38,19 @@
     "type": "git",
     "url": "git+https://github.com/AdrianMPC/frontdoc.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "react",
+    "components",
+    "component-explorer",
+    "documentation",
+    "props",
+    "typescript",
+    "react-docgen-typescript",
+    "storybook-alternative",
+    "vite"
+  ],
+  "author": "AdrianMPC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/AdrianMPC/frontdoc/issues"
   },

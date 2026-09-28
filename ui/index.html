@@ -7,9 +7,11 @@
     <style>
       body { margin: 0; font-family: system-ui, sans-serif; }
       main { display: grid; grid-template-columns: 16rem 1fr; min-height: 100vh; }
-      main > section { padding: 1.5rem; min-width: 0; }
+      main > nav { align-content: start; padding: 1rem; border-right: 1px solid #eee; position: sticky; top: 0; height: 100vh; overflow-y: auto; box-sizing: border-box; }
+      main > section { padding: 1.5rem; min-width: 0; display: grid; gap: 1rem; align-content: start; }
+      main > section > :is(h1, h2, p) { margin: 0; }
       iframe { display: block; width: 100%; border: 1px solid #ddd; border-radius: 6px; }
-      @media (max-width: 40rem) { main { grid-template-columns: 1fr; } }
+      @media (max-width: 40rem) { main { grid-template-columns: 1fr; } main > nav { position: static; height: auto; border-right: 0; } }
     </style>
   </head>
   <body>
