@@ -19,7 +19,14 @@ export function watchDirectory(
   onChange: (filePath: string, schemas: ComponentSchema[]) => void
 ): FSWatcher {
   // ponytail: new ts program per change; reuse one via parseWithProgramProvider if reload feels slow
-  const update = (p: string) => onChange(p, extractComponents(p))
+  const update = (p: string) => {
+    try {
+      onChange(p, extractComponents(p))
+    } catch (err) {
+      // keep watching; last good schema stays in the explorer
+      console.error(`frontdocs: could not parse ${p}: ${(err as Error).message}`)
+    }
+  }
   return watch(dir, {
     ignoreInitial: true,
     ignored: (p, stats) => p.includes('node_modules') || (!!stats?.isFile() && !p.endsWith('.tsx')),

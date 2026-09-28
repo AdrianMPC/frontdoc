@@ -1,4 +1,4 @@
-import { createElement, type ComponentType } from 'react'
+import { Component as ReactComponent, createElement, type ComponentType, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { Example } from './examples'
 
@@ -13,21 +13,54 @@ export interface PreviewMessage {
 
 const root = createRoot(document.getElementById('root')!)
 
+const showError = (title: string, message: string) =>
+  root.render(
+    createElement('div', { className: 'error', role: 'alert' },
+      createElement('strong', null, title),
+      createElement('pre', null, message),
+      createElement('small', null, 'If it needs a provider (theme, router, store), that is not supported yet.'),
+    )
+  )
+
+// A failed import() only says "error loading module"; Vite's error page for the file has the real message (e.g. syntax error)
+async function compileError(file: string): Promise<string | undefined> {
+  const html = await fetch('/@fs' + file).then((r) => r.text()).catch(() => '')
+  const json = html.match(/const error = (\{.*\})\n/)?.[1]
+  return json ? JSON.parse(json).message : undefined
+}
+
+class Boundary extends ReactComponent<{ name: string; children?: ReactNode }, { error?: Error }> {
+  state: { error?: Error } = {}
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  render() {
+    const { error } = this.state
+    return error
+      ? createElement('div', { className: 'error', role: 'alert' }, createElement('strong', null, `${this.props.name} threw while rendering`), createElement('pre', null, error.message))
+      : this.props.children
+  }
+}
+
 window.addEventListener('message', async ({ data }: MessageEvent<PreviewMessage>) => {
   if (!data?.file) return
-  const mod = await import(/* @vite-ignore */ '/@fs' + data.file)
-  const Component: ComponentType<Record<string, unknown>> = mod[data.exportName]
+  let Component: ComponentType<Record<string, unknown>> | undefined
+  try {
+    Component = (await import(/* @vite-ignore */ '/@fs' + data.file))[data.exportName]
+  } catch (err) {
+    return showError(`Could not load ${data.file.split('/').pop()}`, await compileError(data.file) ?? (err as Error).message)
+  }
+  if (!Component) return showError('Export not found', `${data.file} has no export named "${data.exportName}"`)
   const withCallbacks = (props: Record<string, unknown>) => {
     const out = { ...props }
     for (const name of data.callbacks) out[name] ??= (...args: unknown[]) => console.log(`${data.exportName}.${name}`, ...args)
     return out
   }
   root.render(
-    data.examples.map(({ label, props }, i) =>
-      label
-        ? createElement('figure', { key: i }, createElement(Component, withCallbacks(props)), createElement('figcaption', null, label))
-        : createElement(Component, { key: i, ...withCallbacks(props) })
-    )
+    data.examples.map(({ label, props }, i) => {
+      const rendered = createElement(Boundary, { key: i, name: data.exportName }, createElement(Component, withCallbacks(props)))
+      return label ? createElement('figure', { key: i }, rendered, createElement('figcaption', null, label)) : rendered
+    })
   )
 })
 

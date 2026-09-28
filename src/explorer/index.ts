@@ -10,9 +10,16 @@ const ui = fileURLToPath(new URL('../ui', import.meta.url))
 export async function startExplorer({ dir, port }: { dir: string; port: number }): Promise<void> {
   // Preview renders the user's components, so React must be the user's copy (one React → hooks work)
   const userRequire = createRequire(dir + '/')
+  const resolveFromProject = (id: string) => {
+    try {
+      return userRequire.resolve(id)
+    } catch {
+      throw new Error(`couldn't find ${id} from ${dir}. Run frontdocs inside a React project (react and react-dom installed).`)
+    }
+  }
   const alias = ['react-dom/client', 'react/jsx-dev-runtime', 'react/jsx-runtime', 'react-dom', 'react'].map((id) => ({
     find: new RegExp(`^${id}$`),
-    replacement: userRequire.resolve(id),
+    replacement: resolveFromProject(id),
   }))
 
   const server = await createServer({

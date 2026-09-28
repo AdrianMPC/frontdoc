@@ -11,8 +11,14 @@ import { Snippet } from './Snippet'
 import { toJSX } from './snippet'
 
 function App() {
-  const [{ root, components }, setPayload] = useState<SchemasPayload>({ root: '', components: [] })
-  const [selected, setSelected] = useState<string>()
+  const [payload, setPayload] = useState<SchemasPayload>()
+  const { root = '', components = [] } = payload ?? {}
+  // Selection lives in the URL hash so it survives Vite's full reloads (and can be bookmarked)
+  const [selected, setSelected] = useState(() => decodeURIComponent(location.hash.slice(1)) || undefined)
+  const select = (k: string) => {
+    setSelected(k)
+    history.replaceState(null, '', '#' + encodeURIComponent(k))
+  }
   const current = components.find((c) => key(c) === selected) ?? components[0]
 
   useEffect(() => {
@@ -22,8 +28,20 @@ function App() {
 
   return (
     <main>
-      <Sidebar root={root} components={components} selected={current && key(current)} onSelect={setSelected} />
-      {current ? <Explorer key={key(current)} component={current} /> : <p>No components found.</p>}
+      <Sidebar root={root} components={components} selected={current && key(current)} onSelect={select} />
+      {current ? (
+        <Explorer key={key(current)} component={current} />
+      ) : (
+        <section>
+          {payload ? (
+            <p>
+              No React components found in <code>{root}</code>. frontdocs looks for exported PascalCase components in <code>.tsx</code> files.
+            </p>
+          ) : (
+            <p>Scanning for components…</p>
+          )}
+        </section>
+      )}
     </main>
   )
 }
@@ -37,8 +55,14 @@ function Explorer({ component }: { component: ComponentSchema }) {
       <p>{component.description}</p>
       <Preview component={component} examples={[{ label: '', props: values }]} />
       <Snippet code={toJSX(component, values)} />
-      <Controls props={component.props} values={values} onChange={(name, value) => setValues((v) => ({ ...v, [name]: value }))} />
-      <PropTable props={component.props} />
+      {component.props.length ? (
+        <>
+          <Controls props={component.props} values={values} onChange={(name, value) => setValues((v) => ({ ...v, [name]: value }))} />
+          <PropTable props={component.props} />
+        </>
+      ) : (
+        <p>This component has no props.</p>
+      )}
       {grid.length > 0 && (
         <>
           <h2>Examples</h2>

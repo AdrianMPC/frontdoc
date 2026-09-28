@@ -4,8 +4,13 @@ import type { PropSchema } from '../src/extractor'
 export function initialValues(props: PropSchema[]): Record<string, unknown> {
   const values: Record<string, unknown> = {}
   for (const { name, type, required, defaultValue, options } of props) {
-    // Required strings without a default get their name as placeholder so previews aren't empty
-    if (defaultValue == null && required && type === 'string') values[name] = name
+    // Required props without a default get a placeholder so previews aren't empty (string → its name)
+    if (defaultValue == null && required) {
+      if (type === 'string') values[name] = name
+      else if (type === 'number') values[name] = 1
+      else if (type === 'boolean') values[name] = false
+      else if (options?.length) values[name] = options[0]
+    }
     if (defaultValue == null) continue
     const raw = defaultValue.replace(/^(['"`])(.*)\1$/, '$2')
     if (options) {
