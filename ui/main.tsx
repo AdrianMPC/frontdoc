@@ -5,6 +5,7 @@ import type { PreviewMessage } from './preview'
 import { PropTable } from './PropTable'
 import { Controls } from './Controls'
 import { initialValues } from './values'
+import { examples, type Example } from './examples'
 
 function App() {
   const [components, setComponents] = useState<ComponentSchema[]>([])
@@ -32,24 +33,31 @@ function App() {
 
 function Explorer({ component }: { component: ComponentSchema }) {
   const [values, setValues] = useState(() => initialValues(component.props))
+  const grid = examples(component, values)
   return (
     <section>
       <h1>{component.displayName}</h1>
       <p>{component.description}</p>
-      <Preview component={component} props={values} />
+      <Preview component={component} examples={[{ label: '', props: values }]} />
       <Controls props={component.props} values={values} onChange={(name, value) => setValues((v) => ({ ...v, [name]: value }))} />
       <PropTable props={component.props} />
+      {grid.length > 0 && (
+        <>
+          <h2>Examples</h2>
+          <Preview component={component} examples={grid} />
+        </>
+      )}
     </section>
   )
 }
 
-function Preview({ component, props }: { component: ComponentSchema; props: Record<string, unknown> }) {
+function Preview({ component, examples }: { component: ComponentSchema; examples: Example[] }) {
   const frame = useRef<HTMLIFrameElement>(null)
   const post = () => {
     const message: PreviewMessage = {
       file: component.filePath,
       exportName: component.exportName,
-      props,
+      examples,
       callbacks: component.props.filter((p) => p.type.includes('=>')).map((p) => p.name),
     }
     frame.current?.contentWindow?.postMessage(message, '*')
