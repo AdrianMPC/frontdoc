@@ -1,3 +1,12 @@
+/**
+ * Finding components on disk and keeping them up to date.
+ *
+ * scanDirectory: one-time scan of every .tsx file under a folder (node_modules skipped),
+ *   returned as Map<absolute file path, ComponentSchema[]>. Files without components
+ *   are left out.
+ * watchDirectory: re-extracts a file whenever it is added or changed, and reports []
+ *   when it is deleted. Each change builds a new TypeScript program for that file.
+ */
 import { globSync } from 'fs'
 import path from 'path'
 import { watch, type FSWatcher } from 'chokidar'
@@ -18,7 +27,6 @@ export function watchDirectory(
   dir: string,
   onChange: (filePath: string, schemas: ComponentSchema[]) => void
 ): FSWatcher {
-  // ponytail: new ts program per change; reuse one via parseWithProgramProvider if reload feels slow
   const update = (p: string) => {
     try {
       onChange(p, extractComponents(p))

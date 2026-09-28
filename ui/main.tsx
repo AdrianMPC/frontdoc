@@ -1,3 +1,12 @@
+/**
+ * The explorer page: sidebar, component details, controls, preview and examples.
+ *
+ * - Receives component data from the server over Vite's HMR socket (see src/explorer).
+ * - The selected component lives in the URL hash so it survives Vite's full reloads.
+ * - Control values are plain state; every change is posted to the preview iframes.
+ * - Previews run in iframes (preview.html) so the user's CSS can't leak into the
+ *   explorer. Each iframe reports its content height so it can be sized to fit.
+ */
 import { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { ComponentSchema, SchemasPayload } from '../src/extractor'

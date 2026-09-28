@@ -1,3 +1,16 @@
+/**
+ * The explorer server: a Vite dev server that serves the UI in ../ui.
+ *
+ * - The UI ships as source in the package; Vite compiles it (and the user's
+ *   components) on the fly.
+ * - React is resolved from the user's project, not from frontdocs, so the preview
+ *   and the user's components share one React instance (two copies break hooks).
+ * - Component data travels over Vite's own HMR WebSocket: the page sends
+ *   `frontdocs:hello`, the server answers with `frontdocs:schemas` ({ root, components })
+ *   and sends it again whenever the watcher sees a change.
+ * - Edits to a component re-render its preview through Vite's normal hot reload;
+ *   the watcher only has to refresh the prop data.
+ */
 import { createRequire } from 'module'
 import { fileURLToPath } from 'url'
 import { createServer, type Plugin } from 'vite'

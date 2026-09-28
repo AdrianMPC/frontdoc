@@ -5,7 +5,6 @@ export interface Example {
   props: Record<string, unknown>
 }
 
-// ponytail: capped at 16 combos; pick per-prop rows instead if real components blow past it
 const MAX_EXAMPLES = 16
 
 /** One example per combination of union prop values (variant × size …), on top of `base`. */

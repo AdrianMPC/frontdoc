@@ -1,4 +1,11 @@
 #!/usr/bin/env node
+/**
+ * `frontdocs dev [dir] --port 3333`
+ *
+ * Validates the arguments (command, folder exists, port is a valid number), then
+ * starts the explorer. Every failure prints a one-line `frontdocs: ...` message
+ * plus usage and exits with code 1.
+ */
 import { statSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { parseArgs } from 'node:util'

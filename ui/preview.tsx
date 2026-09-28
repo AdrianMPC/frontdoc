@@ -1,3 +1,14 @@
+/**
+ * Runs inside the preview iframe and renders the user's component.
+ *
+ * The parent page posts { file, exportName, examples, callbacks }. The component is
+ * loaded with import('/@fs' + file), so Vite compiles it and hot-reloads it on edit.
+ * Functions can't be sent through postMessage, so callback props arrive as names and
+ * become console loggers here.
+ *
+ * Failures stay inside the frame: a component that throws is caught by an error
+ * boundary, and a file that fails to compile shows Vite's error message.
+ */
 import { Component as ReactComponent, createElement, type ComponentType, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { Example } from './examples'

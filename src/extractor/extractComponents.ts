@@ -1,3 +1,14 @@
+/**
+ * Turns .tsx files into ComponentSchema objects, the data the whole explorer runs on.
+ *
+ * - Pass many files at once: react-docgen-typescript builds one TypeScript program
+ *   per parse() call, so one call for N files is much faster than N calls.
+ * - react-docgen-typescript counts any exported one-argument function as a component,
+ *   so lowercase named exports (utils, hooks) are dropped here. Default exports are
+ *   always kept, because they have no name to check.
+ * - Docgen's output is flattened into PropSchema (name, type, required, default,
+ *   description, options) so the UI never depends on docgen internals.
+ */
 import path from 'path'
 import parser from '../index'
 import type { ComponentSchema } from './index'
@@ -6,7 +17,6 @@ export function extractComponents(filePaths: string | string[]): ComponentSchema
   const absolutePaths = [filePaths].flat().map((p) => path.resolve(p))
   // docgen treats any exported fn with one param as a component; React requires
   // PascalCase for components, so drop lowercase named exports (utils, hooks).
-  // ponytail: default exports always kept, check JSX return type via checker if utils leak in
   const docs = parser.parse(absolutePaths).filter((doc) => {
     const name = doc.expression?.getName() // set via shouldIncludeExpression
     return name === 'default' || /^[A-Z]/.test(name ?? '')
@@ -27,7 +37,6 @@ export function extractComponents(filePaths: string | string[]): ComponentSchema
   }))
 }
 
-// ponytail: TS enum members (Size.Small) stay as their source text, resolve via checker if needed
 function literal(raw: string): string | number {
   try { return JSON.parse(raw) } catch { return raw }
 }
