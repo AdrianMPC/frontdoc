@@ -2,7 +2,7 @@
 
 Zero-config component explorer for React: Swagger for your React components.
 
-Point it at a folder and get a browsable catalog of every component, with its props, live controls, a preview and a copyable JSX snippet. No stories, no config files.
+Point it at a folder and get a browsable catalog of every component, with its props, live controls, a preview and a copyable JSX snippet. No stories to write and no config needed (an optional config file exists for when the defaults guess wrong).
 
 ![Explorer](docs/screenshot-explorer.png)
 
@@ -38,10 +38,12 @@ Then run `npm run docs`.
 - A project with `react` and `react-dom` >= 18 installed (`npm install` done). frontdocs renders your components with your project's own React.
 - TypeScript is **not** required in your project: frontdocs brings its own, so projects on TypeScript 5, 6, 7 or plain `.tsx` files all work.
 
+On early Node 22 releases you may see `ExperimentalWarning: glob is an experimental feature`. It's harmless.
+
 ## Usage
 
 ```sh
-frontdocs dev [dir] [--port <port>]
+frontdocs dev [dir] [--port <port>] [--css <file>]
 ```
 
 | Argument | Default | What it does |
@@ -49,6 +51,8 @@ frontdocs dev [dir] [--port <port>]
 | `dir` | `.` | Folder to scan for components, e.g. `src` or `src/components` |
 | `--port` | `3333` | Port for the local server |
 | `--css` | detected | Global CSS file for previews (repeat the flag for several) |
+
+Defaults can also come from a [config file](#configuration-optional); arguments win over it.
 
 frontdocs prints a URL (`http://localhost:3333/`); open it in your browser. Leave it running while you work: when you edit a component, the explorer updates by itself.
 
@@ -139,7 +143,7 @@ const file = 'src/components/Button.tsx'
 const docsWithAliases = parserFor(file).parse([file])
 ```
 
-It is [react-docgen-typescript](https://github.com/styleguidist/react-docgen-typescript)'s parser with the same options the explorer uses.
+It is [react-docgen-typescript](https://github.com/styleguidist/react-docgen-typescript)'s parser with the same options the explorer uses. Exports: `parser` (default), `parserFor`, `defineConfig`, and the types `Parser`, `ParsedComponent`, `ParsedProp` and `FrontdocsConfig`.
 
 ## Development
 
@@ -152,12 +156,14 @@ node scripts/smoke.mjs    # packs frontdocs and runs it in temp React apps (no T
 
 CI runs type-checks, build, tests and `publint` on Linux and Windows (Node 22.12 and 24), then the smoke test.
 
-Releases are published from CI with npm trusted publishing:
+Releases are published from CI with npm trusted publishing (no tokens):
 
 ```sh
 npm version patch   # or minor / major: bumps the version and creates the vX.Y.Z tag
 git push --follow-tags
 ```
+
+The tag triggers `.github/workflows/release.yml`, which runs the full CI and publishes to npm. One-time setup: on npmjs.com, package `frontdocs` → Settings → Trusted publishing → GitHub Actions, repository `AdrianMPC/frontdoc`, workflow `release.yml`.
 
 ## License
 
