@@ -1,5 +1,7 @@
 # frontdocs
 
+[![npm](https://img.shields.io/npm/v/frontdocs)](https://www.npmjs.com/package/frontdocs) [![CI](https://github.com/AdrianMPC/frontdoc/actions/workflows/ci.yml/badge.svg)](https://github.com/AdrianMPC/frontdoc/actions/workflows/ci.yml)
+
 Zero-config component explorer for React: Swagger for your React components.
 
 Point it at a folder and get a browsable catalog of every component, with its props, live controls, a preview and a copyable JSX snippet. No stories to write and no config needed (an optional config file exists for when the defaults guess wrong).
@@ -8,7 +10,7 @@ Point it at a folder and get a browsable catalog of every component, with its pr
 
 ## Install
 
-You don't have to install anything. From the root of your React project:
+Published on npm as [`frontdocs`](https://www.npmjs.com/package/frontdocs). You don't have to install anything: from the root of your React project, run
 
 ```sh
 npx frontdocs dev src
