@@ -30,8 +30,8 @@
     "!ui/tsconfig.json"
   ],
   "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
+    "build": "tsdown --config-loader tsx",
+    "dev": "tsdown --watch --config-loader tsx",
     "prepublishOnly": "npm run build",
     "test": "node --import tsx --test \"src/**/*.test.ts\" \"ui/**/*.test.ts\""
   },
