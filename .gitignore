@@ -24,3 +24,6 @@ Thumbs.db
 
 # Misc
 todo.md
+
+# Test fixture env (not a secret)
+!src/__fixtures__/app/.env

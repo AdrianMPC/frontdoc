@@ -15,14 +15,20 @@ import { createRequire } from 'module'
 import { fileURLToPath } from 'url'
 import { existsSync, readFileSync } from 'fs'
 import path from 'path'
-import { createServer, loadEnv, type Plugin } from 'vite'
+import { createServer, loadEnv, type Plugin, type ViteDevServer } from 'vite'
 import react from '@vitejs/plugin-react'
 import { scanDirectory, watchDirectory } from '../watcher'
 import type { SchemasPayload } from '../extractor'
 
-const ui = fileURLToPath(new URL('../ui', import.meta.url))
+// The UI ships next to dist/ in the package; walk up so this also works when run from src/ (tests)
+const ui = (() => {
+  for (let d = path.dirname(fileURLToPath(import.meta.url)); ; d = path.dirname(d)) {
+    if (existsSync(path.join(d, 'ui', 'index.html'))) return path.join(d, 'ui')
+    if (d === path.dirname(d)) throw new Error('frontdocs: ui/ folder not found next to the package')
+  }
+})()
 
-export async function startExplorer({ dir, port }: { dir: string; port: number }): Promise<void> {
+export async function startExplorer({ dir, port }: { dir: string; port: number }): Promise<ViteDevServer> {
   // Preview renders the user's components, so React must be the user's copy (one React → hooks work)
   const userRequire = createRequire(dir + '/')
   const resolveFromProject = (id: string) => {
@@ -54,11 +60,15 @@ export async function startExplorer({ dir, port }: { dir: string; port: number }
     // instead of discovering them while browsing and reloading the page each time
     optimizeDeps: { entries: ['*.html', `${path.relative(ui, dir)}/**/*.tsx`, '!**/node_modules/**'] },
     resolve: { alias, tsconfigPaths: true },
-    define: { 'process.env': JSON.stringify({ NODE_ENV: 'development', ...env }) },
+    // One key per variable: Vite only replaces exact `process.env.X` expressions, not a whole object
+    define: Object.fromEntries(
+      Object.entries({ NODE_ENV: 'development', ...env }).map(([k, v]) => [`process.env.${k}`, JSON.stringify(v)])
+    ),
     plugins: [react(), frontdocs(dir, styles)],
   })
   await server.listen()
   server.printUrls()
+  return server
 }
 
 function frontdocs(dir: string, styles: string[]): Plugin {
