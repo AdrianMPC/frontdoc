@@ -6,63 +6,121 @@ Point it at a folder and get a browsable catalog of every component, with its pr
 
 ![Explorer](docs/screenshot-explorer.png)
 
-## Quick start
+## Install
 
-Run it from inside your project:
+You don't have to install anything. From the root of your React project:
 
 ```sh
-npx frontdocs dev ./src/components
+npx frontdocs dev src
 ```
 
-- `dir` defaults to `.` (the current folder).
-- `--port` defaults to `3333`.
+To keep it in the project instead, add it as a dev dependency:
 
-frontdocs starts a local server and prints its URL; open it in your browser.
+```sh
+npm install --save-dev frontdocs
+```
 
-## Features
+and a script to `package.json`:
 
-- **Props from your types.** Extracted from TypeScript types and JSDoc comments with [react-docgen-typescript](https://github.com/styleguidist/react-docgen-typescript).
-- **Prop table.** Name, type, required, default and description, with undocumented props highlighted.
-- **Auto controls.** Select for literal unions (`'sm' | 'md'`), checkbox for booleans, number and text inputs.
-- **Live preview.** The component renders in an iframe and updates as you change controls.
-- **Examples.** Auto-generated for every combination of union props (up to 16).
-- **JSX snippet.** Live code for the current props, with a copy button.
-- **Sidebar.** Components grouped by folder, with search and a doc-health badge (all / some / no props documented).
-- **Hot reload.** Edit a component file and the explorer updates.
+```json
+{
+  "scripts": {
+    "docs": "frontdocs dev src"
+  }
+}
+```
+
+Then run `npm run docs`.
+
+### Requirements
+
+- Node.js >= 22.12
+- A project with `react` and `react-dom` >= 18 installed (`npm install` done). frontdocs renders your components with your project's own React.
+- TypeScript is **not** required in your project: frontdocs brings its own, so projects on TypeScript 5, 6, 7 or plain `.tsx` files all work.
+
+## Usage
+
+```sh
+frontdocs dev [dir] [--port <port>]
+```
+
+| Argument | Default | What it does |
+| --- | --- | --- |
+| `dir` | `.` | Folder to scan for components, e.g. `src` or `src/components` |
+| `--port` | `3333` | Port for the local server |
+
+frontdocs prints a URL (`http://localhost:3333/`); open it in your browser. Leave it running while you work: when you edit a component, the explorer updates by itself.
+
+### What you see
+
+- **Sidebar.** Every component, grouped by folder, with a search box. The dot next to each name shows how well its props are documented: green (all), amber (some), red (none).
+- **Preview.** The component rendered with your app's styles.
+- **JSX snippet.** The code for what the preview shows, with a copy button.
+- **Controls.** One input per prop: a select for unions like `'sm' | 'md' | 'lg'`, a checkbox for booleans, number and text inputs, and a text field for `children`. Change them and the preview and snippet update.
+- **Prop table.** Name, type, required, default and description. Props without a description are highlighted.
+- **Examples.** One preview per combination of union props (e.g. every `variant` × `size`), up to 16.
 
 ![Examples](docs/screenshot-examples.png)
 
-## How components are found
+### Document your components
 
-frontdocs scans `.tsx` files under `dir` and picks up:
+frontdocs reads your TypeScript types and JSDoc comments. Comments above the component and above each prop become its descriptions:
 
-- exported components with PascalCase names, and
-- default exports.
+```tsx
+export interface ButtonProps {
+  /** Text inside the button */
+  label: string
+  /** Visual style */
+  variant?: 'primary' | 'secondary'
+}
 
-`node_modules` is skipped. Lowercase exports (utilities, hooks) are ignored.
+/** The main call-to-action button. */
+export function Button({ label, variant = 'primary' }: ButtonProps) {
+  return <button data-variant={variant}>{label}</button>
+}
+```
 
-## Requirements
+Defaults from destructuring (`variant = 'primary'`) show up in the table and as the initial control value.
 
-- Node.js >= 22.12
-- Run it inside a project that has `react` and `react-dom` >= 18 and `typescript` >= 5 installed. frontdocs renders with your project's own React.
+## What frontdocs picks up automatically
+
+- **Components:** exported components with PascalCase names, plus default exports, in `.tsx` files. Lowercase exports (utilities, hooks), `node_modules`, re-exports from index files and Next.js route files (`page`, `layout`, `loading`, `error`, `not-found`, `template`, `default`) are skipped.
+- **Path aliases** from your `tsconfig.json` (e.g. `@/components/...`), for both prop types and previews.
+- **Global CSS** imported by your app entry (`app/layout.tsx`, `pages/_app.tsx`, `main.tsx`, `index.tsx` or `App.tsx`), processed with your PostCSS config, so Tailwind works.
+- **Public env variables** (`NEXT_PUBLIC_*`, `VITE_*`, `REACT_APP_*`) from your `.env` files, available as `process.env.*` in previews.
+
+## When a preview shows an error
+
+Errors stay inside the preview, with a hint when frontdocs knows the cause:
+
+- **"needs a parent or provider"**: the component only works inside another one (a `Tab` inside `Tabs`) or needs app context (router, query client, auth). Preview its parent instead.
+- **"Required props without a value"**: a required prop is an object or data structure that frontdocs can't generate.
+- **"Could not load …"**: the file doesn't compile; the message is the compiler error. Fix the file and the preview reloads.
+
+Example files that let you render these cases are planned for v0.2.
 
 ## Limitations (v0.1)
 
-- Components that need context providers (theme, router, store) won't render.
+- Components that need context providers (theme, router, store) or a parent component don't render on their own.
 - Function, object and array props aren't editable. Callbacks log to the browser console.
 - Display names for default exports come from the file name.
 
 ## Library use
 
-The package also exports the configured parser, so you can extract the same data in your own scripts:
+The package also exports the parser it uses, so you can extract the same data in your own scripts:
 
 ```ts
-import parser from 'frontdocs'
+import parser, { parserFor } from 'frontdocs'
 
+// Default compiler options
 const docs = parser.parse(['src/components/Button.tsx'])
+
+// Options from the nearest tsconfig.json (path aliases, etc.)
+const file = 'src/components/Button.tsx'
+const docsWithAliases = parserFor(file).parse([file])
 ```
 
-It is react-docgen-typescript's parser with the same options the explorer uses.
+It is [react-docgen-typescript](https://github.com/styleguidist/react-docgen-typescript)'s parser with the same options the explorer uses.
 
 ## License
 
