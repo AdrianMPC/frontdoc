@@ -76,3 +76,5 @@ export interface ParsedProp {
 }
 
 export default parser
+
+export { defineConfig, type FrontdocsConfig } from './config'

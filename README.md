@@ -48,6 +48,7 @@ frontdocs dev [dir] [--port <port>]
 | --- | --- | --- |
 | `dir` | `.` | Folder to scan for components, e.g. `src` or `src/components` |
 | `--port` | `3333` | Port for the local server |
+| `--css` | detected | Global CSS file for previews (repeat the flag for several) |
 
 frontdocs prints a URL (`http://localhost:3333/`); open it in your browser. Leave it running while you work: when you edit a component, the explorer updates by itself.
 
@@ -88,6 +89,24 @@ Defaults from destructuring (`variant = 'primary'`) show up in the table and as 
 - **Path aliases** from your `tsconfig.json` (e.g. `@/components/...`), for both prop types and previews.
 - **Global CSS** imported by your app entry (`app/layout.tsx`, `pages/_app.tsx`, `main.tsx`, `index.tsx` or `App.tsx`), processed with your PostCSS config, so Tailwind works.
 - **Public env variables** (`NEXT_PUBLIC_*`, `VITE_*`, `REACT_APP_*`) from your `.env` files, available as `process.env.*` in previews.
+
+## Configuration (optional)
+
+Everything above works without configuration. When the automatic detection gets something wrong, add a `frontdocs.config.ts` (or `.mts`, `.js`, `.mjs`) to the folder where you run frontdocs. Each field replaces what frontdocs would detect:
+
+```ts
+export default {
+  dir: 'src',                          // folder to scan
+  port: 4000,
+  css: ['src/styles/global.css'],      // global CSS for previews (instead of the detected one)
+  exclude: ['**/*.stories.tsx'],       // extra files to skip, relative to dir
+  envPrefix: ['NEXT_PUBLIC_'],         // .env variables previews can read
+}
+```
+
+If frontdocs is installed in the project, `import { defineConfig } from 'frontdocs'` and `export default defineConfig({ ... })` gives you autocompletion.
+
+Command-line arguments win over the file: `frontdocs dev other-folder --port 5000 --css app.css`.
 
 ## When a preview shows an error
 

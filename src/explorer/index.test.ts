@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { createServer as createNetServer } from 'node:net'
+import path from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'url'
 import type { SchemasPayload } from '../extractor'
@@ -54,4 +55,16 @@ test('explorer server: schemas over WebSocket, app CSS, env vars, aliases', asyn
   const button = await get(`/@fs${app}/components/Button.tsx`)
   assert.equal(button.status, 200, 'the @/ alias resolves when the preview loads a component')
   assert.doesNotMatch(await button.text(), /Failed to resolve import/)
+})
+
+test('explorer server: css and exclude options override the defaults', async (t) => {
+  const port = await freePort()
+  const custom = path.join(app, 'app', 'globals.css')
+  const server = await startExplorer({ dir: app, port, css: [custom], exclude: ['components/Stack.tsx'] })
+  t.after(() => server.close())
+
+  const payload = await schemas(port)
+  assert.ok(!payload.components.some((c) => c.displayName === 'Stack'), 'excluded file is not scanned')
+  const styles = await (await fetch(`http://localhost:${port}/@id/virtual:frontdocs-styles`)).text()
+  assert.match(styles, new RegExp(JSON.stringify(custom).slice(1, -1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
 })

@@ -23,6 +23,10 @@ test('skips Next.js route files and re-exports', () => {
   assert.ok(![...map.keys()].some((f) => /(page|layout|index)\.tsx$/.test(f)))
 })
 
+test('exclude globs (relative to the scanned folder) skip files', () => {
+  assert.deepEqual(names(scanDirectory(app, ['components/Stack.tsx', '**/Api*.tsx'])), ['Button', 'PaginationItem'])
+})
+
 test('watchDirectory reports added, changed and deleted components', async (t) => {
   const dir = mkdtempSync(path.join(tmpdir(), 'frontdocs-watch-'))
   const events: [string, string[]][] = []

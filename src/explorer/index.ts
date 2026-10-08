@@ -28,7 +28,18 @@ const ui = (() => {
   }
 })()
 
-export async function startExplorer({ dir, port }: { dir: string; port: number }): Promise<ViteDevServer> {
+export interface ExplorerOptions {
+  dir: string
+  port: number
+  /** Global CSS for previews; detected from the app's entry files when not given */
+  css?: string[]
+  /** Extra globs to skip, relative to `dir` */
+  exclude?: string[]
+  /** .env prefixes exposed as process.env.* */
+  envPrefix?: string[]
+}
+
+export async function startExplorer({ dir, port, css, exclude = [], envPrefix = ['NEXT_PUBLIC_', 'VITE_', 'REACT_APP_'] }: ExplorerOptions): Promise<ViteDevServer> {
   // Preview renders the user's components, so React must be the user's copy (one React → hooks work)
   const userRequire = createRequire(dir + '/')
   const resolveFromProject = (id: string) => {
@@ -46,14 +57,14 @@ export async function startExplorer({ dir, port }: { dir: string; port: number }
   // Next/CRA-style code reads process.env.* in the browser; expose the project's public env
   // vars (and NODE_ENV) the way those tools do, so components don't crash on `process`.
   const root = projectRoot(dir)
-  const env = loadEnv('development', root, ['NEXT_PUBLIC_', 'VITE_', 'REACT_APP_'])
-  const styles = globalStyles(root)
+  const env = loadEnv('development', root, envPrefix)
+  const styles = css ?? globalStyles(root)
 
   const server = await createServer({
     root: ui,
     configFile: false,
     // Browser console errors from previews (e.g. components missing a provider) stay in the browser
-    server: { port, fs: { allow: [root, dir, ui] }, forwardConsole: false },
+    server: { port, fs: { allow: [root, dir, ui, ...styles] }, forwardConsole: false },
     // PostCSS config (e.g. Tailwind) comes from the user's project, not from frontdocs
     css: { postcss: root },
     // Pre-scan the user's components so Vite optimizes their dependencies once at startup,
@@ -64,28 +75,28 @@ export async function startExplorer({ dir, port }: { dir: string; port: number }
     define: Object.fromEntries(
       Object.entries({ NODE_ENV: 'development', ...env }).map(([k, v]) => [`process.env.${k}`, JSON.stringify(v)])
     ),
-    plugins: [react(), frontdocs(dir, styles)],
+    plugins: [react(), frontdocs(dir, styles, exclude)],
   })
   await server.listen()
   server.printUrls()
   return server
 }
 
-function frontdocs(dir: string, styles: string[]): Plugin {
+function frontdocs(dir: string, styles: string[], exclude: string[]): Plugin {
   return {
     name: 'frontdocs',
     // virtual:frontdocs-styles = the app's global CSS, imported by every preview
     resolveId: (id) => (id === 'virtual:frontdocs-styles' ? '\0frontdocs-styles' : null),
     load: (id) => (id === '\0frontdocs-styles' ? styles.map((f) => `import ${JSON.stringify(f)}`).join('\n') : null),
     configureServer(server) {
-      const schemas = scanDirectory(dir)
+      const schemas = scanDirectory(dir, exclude)
       const all = (): SchemasPayload => ({ root: dir, components: [...schemas.values()].flat() })
       server.ws.on('frontdocs:hello', (_data, client) => client.send('frontdocs:schemas', all()))
       const watcher = watchDirectory(dir, (file, next) => {
         if (next.length) schemas.set(file, next)
         else schemas.delete(file)
         server.ws.send('frontdocs:schemas', all())
-      })
+      }, exclude)
       server.httpServer?.on('close', () => watcher.close())
     },
   }
