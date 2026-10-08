@@ -10,15 +10,21 @@
  *   description, options) so the UI never depends on docgen internals.
  */
 import path from 'path'
-import parser from '../index'
+import { parserFor } from '../index'
 import type { ComponentSchema } from './index'
 
 export function extractComponents(filePaths: string | string[]): ComponentSchema[] {
   const absolutePaths = [filePaths].flat().map((p) => path.resolve(p))
-  // docgen treats any exported fn with one param as a component; React requires
-  // PascalCase for components, so drop lowercase named exports (utils, hooks).
-  const docs = parser.parse(absolutePaths).filter((doc) => {
+  if (!absolutePaths.length) return []
+  // One project per scan, so the first file's tsconfig applies to all of them
+  const docs = parserFor(absolutePaths[0]).parse(absolutePaths).filter((doc) => {
     const name = doc.expression?.getName() // set via shouldIncludeExpression
+    // Re-exports (`export * from './Button'` in an index file) would list a component twice;
+    // keep it only in the file that declares it
+    const declaredIn = doc.expression?.getDeclarations()?.[0]?.getSourceFile().fileName
+    if (declaredIn && path.resolve(declaredIn) !== path.resolve(doc.filePath)) return false
+    // docgen treats any exported fn with one param as a component; React requires
+    // PascalCase for components, so drop lowercase named exports (utils, hooks).
     return name === 'default' || /^[A-Z]/.test(name ?? '')
   })
   return docs.map((doc) => ({

@@ -1,8 +1,11 @@
 import type { PropSchema } from '../src/extractor'
 
 /** Parses docgen's string defaults into control values; props without a usable default are omitted. */
-export function initialValues(props: PropSchema[]): Record<string, unknown> {
+export function initialValues(props: PropSchema[], displayName?: string): Record<string, unknown> {
   const values: Record<string, unknown> = {}
+  // Components like <Button> render nothing without children; start with their name as text
+  const children = props.find(isTextChildren)
+  if (children && children.defaultValue == null) values.children = displayName ?? 'children'
   for (const { name, type, required, defaultValue, options } of props) {
     // Required props without a default get a placeholder so previews aren't empty (string → its name)
     if (defaultValue == null && required) {
@@ -26,4 +29,9 @@ export function initialValues(props: PropSchema[]): Record<string, unknown> {
     }
   }
   return values
+}
+
+/** `children` that accepts text (ReactNode or string): edited as a text field, shown between tags in snippets */
+export function isTextChildren(prop: PropSchema): boolean {
+  return prop.name === 'children' && /ReactNode|string/.test(prop.type)
 }

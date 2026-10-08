@@ -56,7 +56,7 @@ function App() {
 }
 
 function Explorer({ component }: { component: ComponentSchema }) {
-  const [values, setValues] = useState(() => initialValues(component.props))
+  const [values, setValues] = useState(() => initialValues(component.props, component.displayName))
   const grid = examples(component, values)
   return (
     <section>
@@ -91,6 +91,8 @@ function Preview({ component, examples }: { component: ComponentSchema; examples
       exportName: component.exportName,
       examples,
       callbacks: component.props.filter((p) => p.type.includes('=>')).map((p) => p.name),
+      placeholderChildren: initialValues(component.props, component.displayName).children as string | undefined,
+      missingRequired: component.props.filter((p) => p.required).map(({ name, type }) => ({ name, type })),
     }
     frame.current?.contentWindow?.postMessage(message, '*')
   }

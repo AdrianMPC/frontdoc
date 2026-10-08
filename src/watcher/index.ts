@@ -13,8 +13,11 @@ import { watch, type FSWatcher } from 'chokidar'
 import { extractComponents } from '../extractor/extractComponents'
 import type { ComponentSchema } from '../extractor'
 
+// Next.js route files are pages, not reusable components
+const NEXT_ROUTE_FILES = /(^|\/)(page|layout|template|loading|error|global-error|not-found|default)\.tsx$/
+
 export function scanDirectory(dir: string): Map<string, ComponentSchema[]> {
-  const files = globSync('**/*.tsx', { cwd: dir, exclude: (p) => p.includes('node_modules') })
+  const files = globSync('**/*.tsx', { cwd: dir, exclude: (p) => p.includes('node_modules') || NEXT_ROUTE_FILES.test(p) })
     .map((f) => path.resolve(dir, f))
   const byFile = new Map<string, ComponentSchema[]>()
   for (const c of extractComponents(files)) {
@@ -37,7 +40,8 @@ export function watchDirectory(
   }
   return watch(dir, {
     ignoreInitial: true,
-    ignored: (p, stats) => p.includes('node_modules') || (!!stats?.isFile() && !p.endsWith('.tsx')),
+    ignored: (p, stats) =>
+      p.includes('node_modules') || NEXT_ROUTE_FILES.test(p) || (!!stats?.isFile() && !p.endsWith('.tsx')),
   })
     .on('add', update)
     .on('change', update)

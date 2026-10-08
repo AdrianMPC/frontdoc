@@ -20,4 +20,6 @@ assert.deepEqual(initialValues([p('"a" | "b"', "'b'", ['a', 'b'])]), { x: 'b' })
 assert.deepEqual(initialValues([p('1 | 2', '2', [1, 2])]), { x: 2 })
 assert.deepEqual(initialValues([p('() => void', '() => {}')]), {})
 
+assert.deepEqual(initialValues([{ ...p('ReactNode', null), name: 'children' }], 'Button'), { children: 'Button' })
+
 console.log('values ok')

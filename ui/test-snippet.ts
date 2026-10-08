@@ -27,4 +27,8 @@ const numeric: ComponentSchema = {
 assert.equal(toJSX(numeric, { n: 3 }), '<Card />')
 assert.equal(toJSX(numeric, { n: 4 }), '<Card n={4} />')
 
+const withChildren = { ...button, props: [...button.props, { name: 'children', type: 'ReactNode', required: false, defaultValue: null, description: '' }] }
+assert.equal(toJSX(withChildren, { label: 'Hi', children: 'Save' }), '<Button label="Hi">Save</Button>')
+assert.equal(toJSX(withChildren, { label: 'Hi', children: 'a < b' }), '<Button label="Hi">{"a < b"}</Button>')
+
 console.log('snippet ok')

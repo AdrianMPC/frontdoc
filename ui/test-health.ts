@@ -18,4 +18,6 @@ assert.equal(health(blank(button, 1)), 'partial')
 assert.equal(health(blank(button, button.props.length)), 'none')
 assert.equal(health({ ...button, props: [] }), 'good')
 
+assert.equal(health({ ...button, props: [...button.props, { name: 'children', type: 'ReactNode', required: false, defaultValue: null, description: '' }] }), 'good')
+
 console.log('health ok')

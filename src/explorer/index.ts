@@ -13,7 +13,9 @@
  */
 import { createRequire } from 'module'
 import { fileURLToPath } from 'url'
-import { createServer, type Plugin } from 'vite'
+import { existsSync, readFileSync } from 'fs'
+import path from 'path'
+import { createServer, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { scanDirectory, watchDirectory } from '../watcher'
 import type { SchemasPayload } from '../extractor'
@@ -35,20 +37,36 @@ export async function startExplorer({ dir, port }: { dir: string; port: number }
     replacement: resolveFromProject(id),
   }))
 
+  // Next/CRA-style code reads process.env.* in the browser; expose the project's public env
+  // vars (and NODE_ENV) the way those tools do, so components don't crash on `process`.
+  const root = projectRoot(dir)
+  const env = loadEnv('development', root, ['NEXT_PUBLIC_', 'VITE_', 'REACT_APP_'])
+  const styles = globalStyles(root)
+
   const server = await createServer({
     root: ui,
     configFile: false,
-    server: { port, fs: { allow: [dir, ui] } },
-    resolve: { alias },
-    plugins: [react(), frontdocs(dir)],
+    // Browser console errors from previews (e.g. components missing a provider) stay in the browser
+    server: { port, fs: { allow: [root, dir, ui] }, forwardConsole: false },
+    // PostCSS config (e.g. Tailwind) comes from the user's project, not from frontdocs
+    css: { postcss: root },
+    // Pre-scan the user's components so Vite optimizes their dependencies once at startup,
+    // instead of discovering them while browsing and reloading the page each time
+    optimizeDeps: { entries: ['*.html', `${path.relative(ui, dir)}/**/*.tsx`, '!**/node_modules/**'] },
+    resolve: { alias, tsconfigPaths: true },
+    define: { 'process.env': JSON.stringify({ NODE_ENV: 'development', ...env }) },
+    plugins: [react(), frontdocs(dir, styles)],
   })
   await server.listen()
   server.printUrls()
 }
 
-function frontdocs(dir: string): Plugin {
+function frontdocs(dir: string, styles: string[]): Plugin {
   return {
     name: 'frontdocs',
+    // virtual:frontdocs-styles = the app's global CSS, imported by every preview
+    resolveId: (id) => (id === 'virtual:frontdocs-styles' ? '\0frontdocs-styles' : null),
+    load: (id) => (id === '\0frontdocs-styles' ? styles.map((f) => `import ${JSON.stringify(f)}`).join('\n') : null),
     configureServer(server) {
       const schemas = scanDirectory(dir)
       const all = (): SchemasPayload => ({ root: dir, components: [...schemas.values()].flat() })
@@ -61,4 +79,28 @@ function frontdocs(dir: string): Plugin {
       server.httpServer?.on('close', () => watcher.close())
     },
   }
+}
+
+/** Nearest folder at or above `dir` with a package.json (where .env files live); `dir` if none. */
+function projectRoot(dir: string): string {
+  for (let d = dir; ; d = path.dirname(d)) {
+    if (existsSync(path.join(d, 'package.json'))) return d
+    if (d === path.dirname(d)) return dir
+  }
+}
+
+// Where apps import their global CSS (Tailwind, resets, theme): Next app/pages router, Vite, CRA
+const STYLE_ENTRIES = ['app/layout.tsx', 'pages/_app.tsx', 'main.tsx', 'index.tsx', 'App.tsx']
+
+/** CSS files imported by the app's entry files, so previews look like the real app. */
+function globalStyles(root: string): string[] {
+  const files = new Set<string>()
+  for (const entry of STYLE_ENTRIES.flatMap((e) => [path.join(root, e), path.join(root, 'src', e)])) {
+    if (!existsSync(entry)) continue
+    for (const [, spec] of readFileSync(entry, 'utf8').matchAll(/^\s*import\s+['"]([^'"]+\.css)['"]/gm)) {
+      // relative imports only; package CSS (e.g. 'some-lib/styles.css') resolves through the app's own CSS
+      if (spec.startsWith('.')) files.add(path.resolve(path.dirname(entry), spec))
+    }
+  }
+  return [...files]
 }

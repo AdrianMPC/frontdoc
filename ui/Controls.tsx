@@ -1,5 +1,6 @@
 import type { PropSchema } from '../src/extractor'
 import './table-controls.css'
+import { isTextChildren } from './values'
 
 interface ControlsProps {
   props: PropSchema[]
@@ -65,7 +66,7 @@ function Control({ prop, value, onChange }: {
     )
   }
 
-  if (type === 'string') {
+  if (type === 'string' || isTextChildren(prop)) {
     return (
       <label>
         <span className="control-name">{name}</span>
