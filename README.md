@@ -122,6 +122,24 @@ const docsWithAliases = parserFor(file).parse([file])
 
 It is [react-docgen-typescript](https://github.com/styleguidist/react-docgen-typescript)'s parser with the same options the explorer uses.
 
+## Development
+
+```sh
+npm install
+npm run build
+npm test                  # unit and integration tests (node:test)
+node scripts/smoke.mjs    # packs frontdocs and runs it in temp React apps (no TS, TS 5, TS 7)
+```
+
+CI runs type-checks, build, tests and `publint` on Linux and Windows (Node 22.12 and 24), then the smoke test.
+
+Releases are published from CI with npm trusted publishing:
+
+```sh
+npm version patch   # or minor / major: bumps the version and creates the vX.Y.Z tag
+git push --follow-tags
+```
+
 ## License
 
 MIT
