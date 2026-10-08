@@ -17,7 +17,7 @@ import { initialValues } from './values'
 import { examples, type Example } from './examples'
 import { Sidebar } from './Sidebar'
 import { Snippet } from './Snippet'
-import { toJSX } from './snippet'
+import { toJSX } from './jsx'
 
 function App() {
   const [payload, setPayload] = useState<SchemasPayload>()

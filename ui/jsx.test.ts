@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import type { ComponentSchema } from '../src/extractor'
-import { toJSX } from './snippet'
+import { toJSX } from './jsx'
 import { initialValues } from './values'
 
 const fixtures: ComponentSchema[] = JSON.parse(readFileSync(new URL('./fixtures.json', import.meta.url), 'utf8'))
