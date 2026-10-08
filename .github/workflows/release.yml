@@ -1,0 +1,46 @@
+# Publishes to npm when a v* tag is pushed, after the full CI passes.
+#
+# Uses npm trusted publishing (OIDC): no NPM_TOKEN secret, provenance is added automatically.
+# One-time setup on npmjs.com: package frontdocs -> Settings -> Trusted publishing -> GitHub Actions,
+# owner AdrianMPC, repository frontdoc, workflow filename release.yml.
+#
+# To release:
+#   npm version patch   # or minor / major; bumps package.json and creates the vX.Y.Z tag
+#   git push --follow-tags
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      # Node 24 ships npm >= 11.5.1, required for trusted publishing.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - name: Check tag matches package.json version
+        run: |
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $version"
+            exit 1
+          fi
+      - run: npm ci
+      # prepublishOnly runs the build.
+      - run: npm publish --access public
